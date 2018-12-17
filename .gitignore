@@ -35,3 +35,4 @@ sysinfo.txt
 *.apk
 *.unitypackage
 Assets/GoogleARCore/SDK/InstantPreview/Scripts/InstantPreview.apk.meta
+Assets/Sounds/Natural/Icon.meta
