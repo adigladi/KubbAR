@@ -15,6 +15,8 @@ using Input = GoogleARCore.InstantPreviewInput;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
+
 
 public class SwipeScript : MonoBehaviour
 {
@@ -30,19 +32,42 @@ public class SwipeScript : MonoBehaviour
 
     [SerializeField]
     float throwForceInZ = 25f; // to control throw force in Z direction
-
     Rigidbody rb;
-
+    public HitScript HitScript;
     public GameObject Baton;
-
+    public GameObject Player1;
+    public GameObject Player2;
+    public GameObject P1Turn;
+    public GameObject P2Turn;
+    public GameObject Counter;
+    GameObject P1Klossar;
+    GameObject P2Klossar;
+    GameObject Knug;
     bool throwActive = false;
-
-
+    public bool P1Active = false;
+    int numberThrows = 0;
     GameObject NewBaton;
+    bool KnugHit = false;
 
     void Start()
     {
         rb = Baton.GetComponent<Rigidbody>();
+    }
+
+    IEnumerator WaitForTurnSwitch()
+    {
+        yield return new WaitForSeconds(3);
+        KnugHit = CheckKloss(Knug);
+        if (P1Active == true && KnugHit == false)
+        {
+            Player1.SetActive(false);
+            P2Turn.SetActive(true);
+        }
+        else if (P1Active == false && KnugHit == false)
+        {
+            Player2.SetActive(false);
+            P1Turn.SetActive(true);
+        }
     }
 
     // Update is called once per frame
@@ -55,7 +80,6 @@ public class SwipeScript : MonoBehaviour
             // if you touch the screen
             if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
             {
-                Debug.Log("Touch", gameObject);
                 // getting touch position and marking time when you touch the screen
                 touchTimeStart = Time.time;
                 startPos = Input.GetTouch(0).position;
@@ -83,26 +107,86 @@ public class SwipeScript : MonoBehaviour
                 NewBaton.transform.parent = null;
 
                 Destroy(NewBaton, 3f);
+                numberThrows += 1;
+                RemainingThrows.remainingNum = 6 - numberThrows;
                 throwActive = false;
-                Invoke("SpawnBaton", 2);
+                if (numberThrows == 6)
+                {
+                    StartCoroutine(WaitForTurnSwitch());
+                    Counter.SetActive(false);
+                }
+                else if (CheckKloss(Knug)) {
+                    Counter.SetActive(false);
+                }
+                else if (numberThrows < 6)
+                {
+                    Invoke("SpawnBaton", 2);
+                }
             }
         }
     }
-
-    public void SpawnBaton()
+    public void ChangePlayer()
     {
-        NewBaton = Instantiate(Baton, new Vector3(0f, -0.1f, 0.555f), Quaternion.identity);
+        if (P1Active)
+        {
+            P2Turn.SetActive(true);
+            Player2.SetActive(true);
+            P1Klossar.SetActive(false);
+            P2Klossar.SetActive(true);
+            P2Turn.SetActive(false);
+        }
+        else
+        {
+            P1Turn.SetActive(true);
+            Player1.SetActive(true);
+            P1Klossar.SetActive(true);
+            P2Klossar.SetActive(false);
+            P1Turn.SetActive(false);
+        }
+        numberThrows = 0;
+        RemainingThrows.remainingNum = 6 - numberThrows;
+        Counter.SetActive(true);
+        Invoke("SpawnBaton", 0.3f);
+        P1Active = !P1Active;
+    }
+    private void SpawnBaton()
+    {
+        NewBaton = Instantiate(Baton, new Vector3(0.0163f, -0.1988f, 0.5013f), Quaternion.identity);
         NewBaton.transform.parent = gameObject.transform;
-        NewBaton.transform.localPosition = new Vector3(0f, -0.1f, 0.555f);
-        NewBaton.transform.localRotation = Quaternion.Euler(37.607f, 0f, 0f);
+        NewBaton.transform.localPosition = new Vector3(0.0163f, -0.1988f, 0.5013f);
+        NewBaton.transform.localRotation = Quaternion.Euler(-52.953f, 0f, 0f);
         NewBaton.SetActive(true);
         rb = NewBaton.GetComponent<Rigidbody>();
         rb.isKinematic = true;
-        Invoke("ActivateThrow", 1);
+        Invoke("ActivateThrow", 0.2f);
     }
-
+    public void StartGame()
+    {
+        P1Klossar = GameObject.FindGameObjectWithTag("P1Container");
+        P2Klossar = GameObject.FindGameObjectWithTag("P2Container");
+        Knug = GameObject.FindGameObjectWithTag("Knug");
+        SpawnBaton();
+        Player1.SetActive(Player1);
+        P1Active = true;
+        P2Klossar.SetActive(false);
+        numberThrows = 0;
+        RemainingThrows.remainingNum = 6 - numberThrows;
+        Counter.SetActive(true);
+    }
     public void ActivateThrow()
     {
         throwActive = true;
+    }
+
+    public bool CheckKloss(GameObject kloss)
+    {
+        if (kloss.transform.eulerAngles.x <= 320f && kloss.transform.eulerAngles.x >= 220f)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
     }
 }

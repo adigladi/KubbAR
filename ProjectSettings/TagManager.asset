@@ -3,7 +3,13 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - P1Kloss
+  - P2Kloss
+  - Knug
+  - Floor
+  - P1Container
+  - P2Container
   layers:
   - Default
   - TransparentFX
